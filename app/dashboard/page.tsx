@@ -2,7 +2,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectGroup, SelectLabel, SelectItem } from "@/components/ui/select";
-import { SearchIcon, Check } from "lucide-react";
+import { SearchIcon, Search, PhoneCall } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { DataTable } from "@/components/DataTable";
 import { ColumnDef } from "@tanstack/react-table";
@@ -17,8 +17,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 type DataKey = {
+  _id: string;
   itemName: string;
   itemPrice: string;
   imagePath: string;
@@ -39,7 +41,7 @@ const columns: ColumnDef<DataKey>[] = [
     header: 'Image',
     cell: ({ row }) => {
       return (
-        <Image alt='1' src={row.getValue('imagePath')} width={100} height={100} className="max-w-[100px] max-h-[100px]" />
+        <Image alt='1' src={row.getValue('imagePath')} width={80} height={80} className="max-w-[80px] max-h-[80px]" />
       );
     },
   },
@@ -67,54 +69,17 @@ const columns: ColumnDef<DataKey>[] = [
     }
   },
   {
-    accessorKey: "function",
-    header: "Actions",
+    accessorKey: "lotteryStatus",
+    header: "Customer",
     cell: ({ row }) => {
-      return (
-        <div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="w-12 bg-teal-600" size="icon">
-                <Check className="h-4 w-4 ml-2" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Select Winner For {row.getValue('itemName')}</DialogTitle>
-                <DialogDescription>
-                  enter winner details then press save.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex row-auto">
-                <div className="grid gap-4 py-4">
-                  <Select>
-                    <SelectTrigger className="col-span-1 w-36">
-                      <SelectValue placeholder="Select User" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Winner</SelectLabel>
-                          <SelectItem key={1} value={'Ata'}>
-                            Ata
-                          </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit" onClick={() => { }}>Save Changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      )
-    },
-  },
+      return <>
+      {row.getValue('lotteryStatus') !== 'pending' ? <Button><PhoneCall /></Button> : <></>}
+      </>
+    }
+  }
 ];
 
 export default function Home() {
-
   const [data, setData] = useState([]);
 
   const fetchData = async () => {
@@ -125,7 +90,58 @@ export default function Home() {
 
   useEffect(() => {
     fetchData();
+    fetchDialogData();
   }, [])
+
+  const [lotteryData, setLotteryData] = useState([{ itemName: '', itemDate: '', _id: '' }]);
+  const [ticketData, setTicketData] = useState([{userName: 'Pending', _id: 'Pending', ticketQty: '0'}]);
+
+  const [lotteryID, setLotteryID] = useState('');
+  const [ticketID, setTicketID] = useState('');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const fetchDialogData = async () => {
+    const response = await fetch('/api/Winner')
+    const mData = await response.json();
+    setLotteryData(mData);
+  }
+
+  const fetchTicketData = async (lotteryID: string) => {
+    setIsLoading(true);
+    const rs = await fetch('/api/Winner', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemID: lotteryID })
+    })
+    if (rs.status == 200) {
+      setIsLoading(false);
+      const mrs = await rs.json();
+      setTicketData(mrs);
+      setLotteryID(lotteryID);
+    }
+  }
+
+  const [ticketUpdate, setTicketUpdate] = useState(false);
+  const setWinner = async() => {
+    setTicketUpdate(true);
+    const rs = await fetch('/api/Winner', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lotteryID: lotteryID, ticketID: ticketID})
+    })
+    if (rs.status == 200) {
+      setIsLoading(false);
+      const mrs = await rs.json();
+      console.log(mrs);
+      setLotteryID('');
+      setTicketID('');
+      setTicketUpdate(false);
+      setOpen(false);
+      window.location.reload();
+    }
+  }
 
   return (
     <div className="flex flex-col w-full">
@@ -154,6 +170,73 @@ export default function Home() {
               </SelectGroup>
             </SelectContent>
           </Select>
+
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-40 h-12 bg-teal-600" size="icon">
+                Select Winner
+                <Search className="h-4 w-4 ml-2" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader className="items-center">
+                <DialogTitle>Select Lottery Winner</DialogTitle>
+                <DialogDescription>
+                  Select Lottery ID & the winner
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex row-auto items-center justify-center">
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Lottery Ticket
+                    </Label>
+                    <Select onValueChange={(value) => {  fetchTicketData(value); }}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select Lottery" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Lottery Name</SelectLabel>
+                          {lotteryData.map((type, index) => (
+                            <SelectItem key={index} value={type._id}>
+                              {type.itemName} | {type.itemDate}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Winner
+                    </Label>
+
+                    <Select onValueChange={(value) => { setTicketID(value) }}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder={isLoading ? 'Please Wait ...' : 'Select Winner'}/>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Winner Name</SelectLabel>
+                          {ticketData.map((type, index) => (
+                            <SelectItem key={index} value={type._id}>
+                              {type.userName} | X{type.ticketQty}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button className="bg-orange-500 text-white font-bold">Select Random Winner</Button>
+                <Button type="submit" onClick={() => {setWinner()}} disabled={ticketUpdate}>{ticketUpdate ? 'Please Wait ...' : 'Save Progress'}</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </section>
 
         <section className="mt-10">
