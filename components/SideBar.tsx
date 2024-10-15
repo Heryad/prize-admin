@@ -1,7 +1,7 @@
 'use client'
 import Link from "next/link";
 import { usePathname } from 'next/navigation'
-import { IceCream, LayoutDashboard, LucideIcon, UsersIcon, BoxSelect, CreditCard, Paperclip } from "lucide-react";
+import { IceCream, LayoutDashboard, LucideIcon, UsersIcon, BoxSelect, CreditCard, Paperclip, Image } from "lucide-react";
 import { Key } from "react";
 
 type NavProps = {
@@ -53,6 +53,13 @@ const items: NavProps[] = [
         title: 'Payments',
         icon: CreditCard,
         href: '/payments',
+        type: 'link'
+    },
+    {
+        id: 6,
+        title: 'Banners',
+        icon: Image,
+        href: '/banners',
         type: 'link'
     },
     {
