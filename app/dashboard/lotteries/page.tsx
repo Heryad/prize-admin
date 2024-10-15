@@ -4,7 +4,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-    Pen,
     Plus,
     Search,
     X,
@@ -90,6 +89,11 @@ const columns: ColumnDef<DataKey>[] = [
     {
         accessorKey: "drawRules",
         header: "Desc",
+        cell: ({ row }) => {
+            return (
+                <span className="line-clamp-1">{row.getValue('drawRules')}</span>
+            )
+        }
     },
     {
         accessorKey: "itemQuantity",
@@ -105,9 +109,9 @@ const columns: ColumnDef<DataKey>[] = [
         cell: ({ row }) => {
             return (
                 <div className="flex">
-                    <div className="bg-teal-700 w-10 h-10 flex items-center justify-center mr-2 rounded-md p-2 cursor-pointer">
+                    {/* <div className="bg-teal-700 w-10 h-10 flex items-center justify-center mr-2 rounded-md p-2 cursor-pointer">
                         <Pen color="white" />
-                    </div>
+                    </div> */}
                     <AlertDialog>
                         <AlertDialogTrigger>
                             <Button className="bg-red-700 w-10 h-10 flex items-center justify-center mr-2 rounded-md p-2 cursor-pointer"><X color="white" /></Button>
@@ -170,7 +174,7 @@ export default function UsersPage() {
         const rs = await fetch('../../api/Lottery', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ itemName: itemName, itemPrice: ticketPrice, itemDate: date, imagePath: imageBase, drawRules: drawRules, itemQuantity: ticketQty, itemSoldQuantity: '0', itemCategory: sCat, lotteryStatus: 'pending', lotteryWinner: 'n/a' })
+            body: JSON.stringify({ itemName: itemName, itemPrice: ticketPrice, itemDate: date ? format(date, "dd/MM/yyyy") : '', imagePath: imageBase, drawRules: drawRules, itemQuantity: ticketQty, itemSoldQuantity: '0', itemCategory: sCat, lotteryStatus: 'pending', lotteryWinner: 'n/a' })
         })
         if (rs.status == 200) {
             setItemName('');
