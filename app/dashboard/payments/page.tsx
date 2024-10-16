@@ -21,6 +21,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { ProgressIndicator } from "@/components/ui/progressIndicator";
 
 type DataKey = {
     _id: string;
@@ -134,6 +135,7 @@ const columns: ColumnDef<DataKey>[] = [
 
 export default function UsersPage() {
     const [searchData, setSearchData] = useState<any>([]);
+    const [dataLoading, setDataLoading] = useState(false);
 
     const [data, setData] = useState<DataKey | any>([]);
 
@@ -146,9 +148,11 @@ export default function UsersPage() {
     }
 
     const fetchData = async () => {
+        setDataLoading(true);
         const response = await fetch('../../api/Payments')
         const mData = await response.json();
         setData(mData);
+        setDataLoading(false);
     }
 
     useEffect(() => {
@@ -171,10 +175,10 @@ export default function UsersPage() {
                         <Search className="h-4 w-4" />
                     </Button>
                 </div>
-                <DataTable
+                {dataLoading ? <ProgressIndicator /> : <DataTable
                     columns={columns}
                     data={searchData.length >= 1 ? searchData : data}
-                />
+                />}
             </div>
         </main>
     );

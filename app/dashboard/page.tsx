@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { ProgressIndicator } from "@/components/ui/progressIndicator";
 
 type DataKey = {
   _id: string;
@@ -73,19 +74,23 @@ const columns: ColumnDef<DataKey>[] = [
     header: "Customer",
     cell: ({ row }) => {
       return <>
-      {row.getValue('lotteryStatus') !== 'pending' ? <Button><PhoneCall /></Button> : <></>}
+        {row.getValue('lotteryStatus') !== 'pending' ? <Button><PhoneCall /></Button> : <></>}
       </>
     }
   }
 ];
 
 export default function Home() {
+  const [dataLoading, setDataLoading] = useState(false);
+
   const [data, setData] = useState([]);
 
   const fetchData = async () => {
+    setDataLoading(true);
     const response = await fetch('/api/Lottery')
     const mData = await response.json();
     setData(mData);
+    setDataLoading(false);
   }
 
   useEffect(() => {
@@ -94,7 +99,7 @@ export default function Home() {
   }, [])
 
   const [lotteryData, setLotteryData] = useState([{ itemName: '', itemDate: '', _id: '' }]);
-  const [ticketData, setTicketData] = useState([{userName: 'Pending', _id: 'Pending', ticketQty: '0'}]);
+  const [ticketData, setTicketData] = useState([{ userName: 'Pending', _id: 'Pending', ticketQty: '0' }]);
 
   const [lotteryID, setLotteryID] = useState('');
   const [ticketID, setTicketID] = useState('');
@@ -123,13 +128,24 @@ export default function Home() {
     }
   }
 
+  const [randomID, setRandomID] = useState(99999999999);
+  const [winnerLoading, setWinnerLoading] = useState(false);
+  const selectRandom = () => {
+    setWinnerLoading(true);
+    const randomIndex = Math.floor(Math.random() * ticketData.length)
+    setRandomID(randomIndex);
+    setTimeout(() => {
+      setWinnerLoading(false);
+    }, 2000);
+  }
+
   const [ticketUpdate, setTicketUpdate] = useState(false);
-  const setWinner = async() => {
+  const setWinner = async () => {
     setTicketUpdate(true);
     const rs = await fetch('/api/Winner', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lotteryID: lotteryID, ticketID: ticketID})
+      body: JSON.stringify({ lotteryID: lotteryID, ticketID: ticketID })
     })
     if (rs.status == 200) {
       setIsLoading(false);
@@ -173,7 +189,7 @@ export default function Home() {
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="w-40 h-12 bg-teal-600" size="icon">
+              <Button className="w-40 h-12 bg-teal-600" size="icon" disabled={dataLoading}>
                 Select Winner
                 <Search className="h-4 w-4 ml-2" />
               </Button>
@@ -191,7 +207,7 @@ export default function Home() {
                     <Label htmlFor="name" className="text-right">
                       Lottery Ticket
                     </Label>
-                    <Select onValueChange={(value) => {  fetchTicketData(value); }}>
+                    <Select onValueChange={(value) => { fetchTicketData(value); }}>
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select Lottery" />
                       </SelectTrigger>
@@ -213,18 +229,28 @@ export default function Home() {
                       Winner
                     </Label>
 
-                    <Select onValueChange={(value) => { setTicketID(value) }}>
+                    <Select onValueChange={(value) => { setTicketID(value) }} disabled={isLoading}>
                       <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder={isLoading ? 'Please Wait ...' : 'Select Winner'}/>
+                        <SelectValue placeholder={isLoading ? 'Please Wait ...' : 'Select Winner'} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Winner Name</SelectLabel>
-                          {ticketData.map((type, index) => (
-                            <SelectItem key={index} value={type._id}>
-                              {type.userName} | X{type.ticketQty}
-                            </SelectItem>
-                          ))}
+                          <SelectLabel>{randomID == 99999999999 ? 'Winner Name' : 'Winner : ' + ticketData[randomID].userName}</SelectLabel>
+                          {randomID == 99999999999 ?
+                            <>
+                              {ticketData.map((type, index) => (
+                                <SelectItem key={index} value={type._id}>
+                                  {type.userName} | X{type.ticketQty}
+                                </SelectItem>
+                              ))}
+                            </>
+                            :
+                            <>
+                              <SelectItem key={randomID} value={ticketData[randomID]._id}>
+                                {ticketData[randomID].userName} | X{ticketData[randomID].ticketQty}
+                              </SelectItem>
+                            </>
+                          }
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -232,18 +258,18 @@ export default function Home() {
                 </div>
               </div>
               <DialogFooter>
-                <Button className="bg-orange-500 text-white font-bold">Select Random Winner</Button>
-                <Button type="submit" onClick={() => {setWinner()}} disabled={ticketUpdate}>{ticketUpdate ? 'Please Wait ...' : 'Save Progress'}</Button>
+                <Button className="bg-orange-500 text-white font-bold" disabled={winnerLoading} onClick={() => { selectRandom() }}>{winnerLoading ? <span className="flex flex-row justify-center items-center"><ProgressIndicator className="mr-2" color="white"/> Select Random Winner</span> : 'Select Random Winner'}</Button>
+                <Button type="submit" onClick={() => { setWinner() }} disabled={ticketUpdate}>{ticketUpdate ? 'Please Wait ...' : 'Save Progress'}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </section>
 
         <section className="mt-10">
-          <DataTable
+          {dataLoading ? <ProgressIndicator /> : <DataTable
             columns={columns}
             data={data}
-          />
+          />}
         </section>
       </section>
     </div>

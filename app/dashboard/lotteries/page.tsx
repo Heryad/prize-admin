@@ -43,6 +43,7 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ProgressIndicator } from "@/components/ui/progressIndicator";
 
 type DataKey = {
     _id: string;
@@ -149,6 +150,7 @@ const columns: ColumnDef<DataKey>[] = [
 export default function UsersPage() {
     const [searchData, setSearchData] = useState<any>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [dataLoading, setDataLoading] = useState(false);
 
     const [data, setData] = useState<DataKey | any>([]);
 
@@ -211,9 +213,11 @@ export default function UsersPage() {
     }
 
     const fetchData = async () => {
+        setDataLoading(true);
         const response = await fetch('../../api/Lottery')
         const mData = await response.json();
         setData(mData);
+        setDataLoading(false);
     }
 
     const [catData, setCatData] = useState([{ nameEN: 'Pending ...', _id: '0x' }]);
@@ -245,7 +249,7 @@ export default function UsersPage() {
                     </Button>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
-                            <Button className="w-40 ml-5 bg-teal-600" size="icon">
+                            <Button className="w-40 ml-5 bg-teal-600" size="icon" disabled={dataLoading}>
                                 Add
                                 <Plus className="h-4 w-4 ml-2" />
                             </Button>
@@ -352,10 +356,10 @@ export default function UsersPage() {
                         </DialogContent>
                     </Dialog>
                 </div>
-                <DataTable
+                {dataLoading ? <ProgressIndicator /> : <DataTable
                     columns={columns}
                     data={searchData.length >= 1 ? searchData : data}
-                />
+                />}
             </div>
         </main>
     );

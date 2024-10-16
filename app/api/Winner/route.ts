@@ -5,7 +5,7 @@ import Ticket from '../models/ticket';
 
 export async function GET() {
   await dbConnect();
-  const mResp = await Lottery.find({});
+  const mResp = await Lottery.find({lotteryStatus: 'pending'});
   return NextResponse.json(mResp);
 }
 
@@ -20,8 +20,23 @@ export async function PUT(request: Request) {
     const body = await request.json();
     await dbConnect();
 
-    const ticketResp = await Ticket.findByIdAndUpdate(body.ticketID, {ticketStatus: 'completed', ticketResult: 'won'}, { new: true });
+    const ticketResp = await Ticket.findByIdAndUpdate(body.ticketID, {ticketStatus: 'Completed', ticketResult: 'won'}, { new: true });
 
     const mResp = await Lottery.findByIdAndUpdate(body.lotteryID, {lotteryStatus: 'completed', lotteryWinner: ticketResp.userName}, { new: true });
-    return NextResponse.json(mResp);
+    console.log(mResp);
+
+    const remainResp = await Ticket.updateMany(
+      { 
+        itemID: body.lotteryID,
+        ticketStatus: 'Pending'
+      },
+      {
+        $set: {
+          ticketStatus: 'Completed',
+          ticketResult: 'lose',
+        },
+      },
+      { new: true } // This option returns the updated document
+    );
+    return NextResponse.json(remainResp);
 }
