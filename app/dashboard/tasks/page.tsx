@@ -126,6 +126,7 @@ export default function UsersPage() {
     const [taskReward, setTaskReward] = useState('');
     const [taskType, setTaskType] = useState('');
     const [imageBase, setImageBase] = useState('');
+    const [taskURL, setTaskURL] = useState('');
     const [open, setOpen] = useState(false);
 
     const convertToBase64 = (file: File) => {
@@ -155,12 +156,13 @@ export default function UsersPage() {
         const rs = await fetch('../../api/Task', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ taskName: taskName, taskReward: taskReward, taskType: taskType, imagePath: imageBase })
+            body: JSON.stringify({ taskName: taskName, taskReward: taskReward, taskType: taskType, imagePath: imageBase, taskURL: taskURL })
         })
         if (rs.status == 200) {
             setTaskName('');
             setTaskReward('');
             setImageBase('');
+            setTaskURL('');
             setOpen(false);
             setIsLoading(false);
             fetchData();
@@ -222,6 +224,13 @@ export default function UsersPage() {
                                             Reward
                                         </Label>
                                         <Input id="name" className="col-span-3" type="number" value={taskReward} onChange={e => { setTaskReward(e.currentTarget.value) }} />
+                                    </div>
+
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="name" className="text-right">
+                                            URL
+                                        </Label>
+                                        <Input id="name" className="col-span-3" type="number" value={taskURL} onChange={e => { setTaskURL(e.currentTarget.value) }} />
                                     </div>
 
                                     <div className="grid grid-cols-4 items-center gap-4">
