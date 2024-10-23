@@ -230,7 +230,7 @@ export default function UsersPage() {
                                         <Label htmlFor="name" className="text-right">
                                             URL
                                         </Label>
-                                        <Input id="name" className="col-span-3" type="number" value={taskURL} onChange={e => { setTaskURL(e.currentTarget.value) }} />
+                                        <Input id="name" className="col-span-3" value={taskURL} onChange={e => { setTaskURL(e.currentTarget.value) }} />
                                     </div>
 
                                     <div className="grid grid-cols-4 items-center gap-4">
