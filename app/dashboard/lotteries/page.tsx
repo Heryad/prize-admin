@@ -256,9 +256,9 @@ export default function UsersPage() {
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[500px]">
                             <DialogHeader>
-                                <DialogTitle>Add Category</DialogTitle>
+                                <DialogTitle>Add Lottery</DialogTitle>
                                 <DialogDescription>
-                                    enter category details then press save.
+                                    enter lottery details then press save.
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="flex row-auto">
@@ -269,7 +269,7 @@ export default function UsersPage() {
                                         </Label>
                                         <Select onValueChange={(value) => { setSCat(value) }}>
                                             <SelectTrigger className="col-span-3">
-                                                <SelectValue placeholder="Select Status" />
+                                                <SelectValue placeholder="Select Category" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
